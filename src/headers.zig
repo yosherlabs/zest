@@ -22,12 +22,24 @@ pub const Headers = struct {
     }
 
     pub fn get(self: Headers, name: []const u8) ?[]const u8 {
-        return self.headers.get(name);
+        var iter = self.headers.iterator();
+        while (iter.next()) |entry| {
+            if (std.ascii.eqlIgnoreCase(entry.key_ptr.*, name)) return entry.value_ptr.*;
+        }
+        return null;
     }
 
     pub fn put(self: *Headers, name: []const u8, value: []const u8) HeadersError!void {
         if (!validName(name)) return HeadersError.InvalidHeaderName;
         if (!validValue(value)) return HeadersError.InvalidHeaderValue;
+
+        var iter = self.headers.iterator();
+        while (iter.next()) |entry| {
+            if (std.ascii.eqlIgnoreCase(entry.key_ptr.*, name)) {
+                entry.value_ptr.* = value;
+                return;
+            }
+        }
 
         self.headers.put(name, value) catch return HeadersError.OutOfSpace;
     }
@@ -36,7 +48,7 @@ pub const Headers = struct {
         if (header.len == 0) return HeadersError.InvalidHeader;
         if (std.mem.count(u8, header, ": ") != 1) return HeadersError.InvalidHeader;
 
-        var iter = std.mem.split(u8, header, ": ");
+        var iter = std.mem.splitSequence(u8, header, ": ");
         const name = iter.first();
         const value = if (iter.next()) |v| v else return HeadersError.InvalidHeader;
 
@@ -138,4 +150,17 @@ test "out of space error" {
 
     const expected_error = HeadersError.OutOfSpace;
     try expectError(expected_error, headers.parse("g: 7"));
+}
+
+test "header names are case-insensitive" {
+    var buffer: [400]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var headers = Headers.init(fba.allocator());
+
+    try headers.parse("Content-Length: 42");
+    try expectEqualStrings("42", headers.get("content-length") orelse unreachable);
+    try expectEqualStrings("42", headers.get("CONTENT-LENGTH") orelse unreachable);
+
+    try headers.parse("content-length: 43");
+    try expectEqualStrings("43", headers.get("Content-Length") orelse unreachable);
 }

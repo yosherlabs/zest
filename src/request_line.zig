@@ -20,7 +20,7 @@ pub const RequestLine = struct {
 };
 
 pub fn parse(request_line: []const u8) Error!RequestLine {
-    var iterator = std.mem.split(u8, request_line, " ");
+    var iterator = std.mem.splitScalar(u8, request_line, ' ');
     var slice = iterator.first();
 
     const parsed_method = try method.parse(slice);
@@ -39,8 +39,6 @@ pub fn parse(request_line: []const u8) Error!RequestLine {
 
     return RequestLine{ .method = parsed_method, .path = parsed_path, .version = parsed_version };
 }
-
-
 
 test "valid request start path" {
     const request_line = "POST /hello HTTP/1.1";

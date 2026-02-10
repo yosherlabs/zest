@@ -10,9 +10,7 @@ const Person = struct {
     name: []const u8,
 };
 
-const ScouterReading = struct {
-    power_level: u64
-};
+const ScouterReading = struct { power_level: u64 };
 
 fn scouter(req: Request, res: *Response) anyerror!void {
     const request_body = try req.parseBody(Person);

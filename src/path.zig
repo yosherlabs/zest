@@ -19,7 +19,7 @@ pub fn parse(path: []const u8) PathError![]const u8 {
 }
 
 fn isUnreserved(char: u8) bool {
-    return std.ascii.isAlNum(char) or switch (char) {
+    return std.ascii.isAlphanumeric(char) or switch (char) {
         '-', '.', '_', '~' => true,
         else => false,
     };

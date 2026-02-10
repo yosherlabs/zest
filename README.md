@@ -43,6 +43,8 @@ pub fn main() !void {
 * Requires `Content-Length: <length_here>` in request headers
 * At a minimum an empty object `{}` must be sent in the request / response
 ## Building
-Zest is being developed on Zig version 0.10.1 and will be kept up to date with new releases.
+Zest is being developed on Zig version 0.15.2 and will be kept up to date with new releases.
 
-To build Zest do `zig build` (this also builds the `scouter` example). To indivually build the `scouter` example do `zig build example -Dexample=scouter` and the executable will appear in `zig-out/bin`.
+To build Zest do `zig build` (this also builds the `scouter` example). To
+individually build the `scouter` example do `zig build example -Dexample=scouter`
+and the executable will appear in `zig-out/bin`.

@@ -11,24 +11,24 @@ pub const Scheme = enum {
     http,
 
     pub fn toString(self: Scheme) []const u8 {
-        return schemes[@enumToInt(self)];
+        return schemes[@intFromEnum(self)];
     }
 };
 
 // https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
-pub const schemes = [_][]const u8{ "http" };
+pub const schemes = [_][]const u8{"http"};
 
 pub fn parse(scheme: []const u8) SchemeError!Scheme {
-    for (schemes) |v, i| {
+    for (schemes, 0..) |v, i| {
         if (std.mem.eql(u8, v, scheme)) {
-            return @intToEnum(Scheme, i);
+            return @enumFromInt(i);
         }
     }
     return SchemeError.UnsupportedScheme;
 }
 
 test "lengths are equal" {
-    const schemes_enum_length = @typeInfo(Scheme).Enum.fields.len;
+    const schemes_enum_length = @typeInfo(Scheme).@"enum".fields.len;
     try expect(schemes_enum_length == schemes.len);
 }
 

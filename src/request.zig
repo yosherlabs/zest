@@ -7,11 +7,11 @@ const h = @import("headers.zig");
 const rl = @import("request_line.zig");
 const b = @import("body.zig");
 
-pub const EmptyBody = struct{};
+pub const EmptyBody = struct {};
 
 pub const Request = struct {
     request_line: rl.RequestLine,
-    headers: h.Headers, 
+    headers: h.Headers,
     body_raw: []const u8,
     body_allocator: std.mem.Allocator,
 

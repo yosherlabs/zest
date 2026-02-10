@@ -52,11 +52,11 @@ pub const Status = enum {
     http_version_not_supported,
 
     pub fn toString(self: Status) []const u8 {
-        return status_codes_string[@enumToInt(self)];
+        return status_codes_string[@intFromEnum(self)];
     }
 
     pub fn toU16(self: Status) u16 {
-        return status_codes_u16[@enumToInt(self)];
+        return status_codes_u16[@intFromEnum(self)];
     }
 };
 
@@ -65,31 +65,31 @@ pub const status_codes_u16 = [_]u16{ 100, 101, 200, 201, 202, 203, 204, 205, 206
 pub const status_codes_string = [_][]const u8{ "100", "101", "200", "201", "202", "203", "204", "205", "206", "300", "301", "302", "303", "304", "307", "308", "400", "401", "403", "404", "405", "406", "407", "408", "409", "410", "411", "412", "413", "414", "415", "416", "417", "421", "422", "426", "500", "501", "502", "503", "504", "505" };
 
 pub fn parse(status_code: []const u8) StatusError!Status {
-    for (status_codes_string) |sc, i| {
+    for (status_codes_string, 0..) |sc, i| {
         if (std.mem.eql(u8, sc, status_code)) {
-            return @intToEnum(Status, i);
+            return @enumFromInt(i);
         }
     }
     return StatusError.InvalidStatusCode;
 }
 
 pub fn code(status_code: u16) StatusError!Status {
-    for (status_codes_u16) |sc, i| {
+    for (status_codes_u16, 0..) |sc, i| {
         if (sc == status_code) {
-            return @intToEnum(Status, i);
+            return @enumFromInt(i);
         }
     }
     return StatusError.InvalidStatusCode;
 }
 
 test "lengths are equal" {
-    const status_enum_length = @typeInfo(Status).Enum.fields.len;
+    const status_enum_length = @typeInfo(Status).@"enum".fields.len;
     try expect(status_enum_length == status_codes_u16.len);
     try expect(status_enum_length == status_codes_string.len);
 }
 
 test "array values are equal" {
-    for (status_codes_u16) |value, i| {
+    for (status_codes_u16, 0..) |value, i| {
         try expect(value == try std.fmt.parseUnsigned(u16, status_codes_string[i], 10));
     }
 }

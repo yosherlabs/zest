@@ -18,7 +18,7 @@ pub const StatusLine = struct {
 };
 
 pub fn parse(status_line: []const u8) Error!StatusLine {
-    var iterator = std.mem.split(u8, status_line, " ");
+    var iterator = std.mem.splitScalar(u8, status_line, ' ');
     var slice = iterator.first();
 
     const parsed_version = try version.parse(slice);

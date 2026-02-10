@@ -11,7 +11,7 @@ pub const Version = enum {
     http11,
 
     pub fn toString(self: Version) []const u8 {
-        return versions[@enumToInt(self)];
+        return versions[@intFromEnum(self)];
     }
 };
 
@@ -19,16 +19,16 @@ pub const Version = enum {
 pub const versions = [_][]const u8{"HTTP/1.1"};
 
 pub fn parse(version: []const u8) VersionError!Version {
-    for (versions) |v, i| {
+    for (versions, 0..) |v, i| {
         if (std.mem.eql(u8, v, version)) {
-            return @intToEnum(Version, i);
+            return @enumFromInt(i);
         }
     }
     return VersionError.UnsupportedVersion;
 }
 
 test "lengths are equal" {
-    const versions_enum_length = @typeInfo(Version).Enum.fields.len;
+    const versions_enum_length = @typeInfo(Version).@"enum".fields.len;
     try expect(versions_enum_length == versions.len);
 }
 

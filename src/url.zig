@@ -19,9 +19,7 @@ pub const Url = struct {
     port: ?u16,
     path: []const u8,
 
-    pub fn format(self: Url, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-        _ = options;
-        _ = fmt;
+    pub fn format(self: Url, writer: *std.Io.Writer) std.Io.Writer.Error!void {
         try writer.writeAll(self.scheme.toString());
         try writer.writeAll("://");
         try writer.writeAll(self.host);
@@ -36,29 +34,43 @@ pub fn parse(url: []const u8) Error!Url {
     if (url.len == 0) return UrlError.InvalidUrl;
     if (std.mem.count(u8, url, "://") != 1) return UrlError.InvalidUrl;
 
-    var iterator = std.mem.split(u8, url, "://");
+    var iterator = std.mem.splitSequence(u8, url, "://");
     var slice = iterator.first();
 
     const parsed_scheme = try scheme.parse(slice);
 
     slice = if (iterator.next()) |s| s else return UrlError.InvalidUrl;
 
-    const port_colon_index = std.mem.indexOf(u8, slice, ":");
-    const slash_index = if (std.mem.indexOf(u8, slice, "/")) |index| index else return UrlError.InvalidUrl;
+    const slash_index = if (std.mem.indexOfScalar(u8, slice, '/')) |index| index else return UrlError.InvalidUrl;
+    const authority = slice[0..slash_index];
+    if (authority.len == 0) return UrlError.InvalidUrl;
 
-    const parsed_port = if (port_colon_index) |index| blk: {
-        if (slash_index - index > 1) {
-            break :blk try port.parse(slice[(index + 1)..slash_index]);
-        } else {
-            return UrlError.InvalidUrl;
+    var parsed_port: ?u16 = null;
+    const parsed_host = blk: {
+        if (authority[0] == '[') {
+            const closing_bracket_index = std.mem.indexOfScalar(u8, authority, ']') orelse return UrlError.InvalidUrl;
+            const host_slice = authority[0 .. closing_bracket_index + 1];
+
+            if (closing_bracket_index + 1 < authority.len) {
+                if (authority[closing_bracket_index + 1] != ':') return UrlError.InvalidUrl;
+                const port_slice = authority[(closing_bracket_index + 2)..];
+                if (port_slice.len == 0) return UrlError.InvalidUrl;
+                parsed_port = try port.parse(port_slice);
+            }
+
+            break :blk try host.parse(host_slice);
         }
-    } else null;
 
-    const parsed_host = if (port_colon_index) |index| blk: {
-        if (index < slash_index) {
-            break :blk try host.parse(slice[0..index]);
-        } else return UrlError.InvalidUrl;
-    } else try host.parse(slice[0..slash_index]);
+        if (std.mem.indexOfScalar(u8, authority, ':')) |colon_index| {
+            if (colon_index == 0) return UrlError.InvalidUrl;
+            const port_slice = authority[(colon_index + 1)..];
+            if (port_slice.len == 0) return UrlError.InvalidUrl;
+            parsed_port = try port.parse(port_slice);
+            break :blk try host.parse(authority[0..colon_index]);
+        }
+
+        break :blk try host.parse(authority);
+    };
 
     const parsed_path = try path.parse(slice[slash_index..]);
     return Url{ .scheme = parsed_scheme, .host = parsed_host, .port = parsed_port, .path = parsed_path };
@@ -66,16 +78,16 @@ pub fn parse(url: []const u8) Error!Url {
 
 test "format" {
     var url = Url{ .scheme = scheme.Scheme.http, .host = try host.parse("hello.com"), .port = 8080, .path = try path.parse("/hello/there") };
-    try expectFmt("http://hello.com:8080/hello/there", "{}", .{url});
+    try expectFmt("http://hello.com:8080/hello/there", "{f}", .{url});
 
     url = Url{ .scheme = scheme.Scheme.http, .host = try host.parse("hello.com"), .port = null, .path = try path.parse("/hello/there") };
-    try expectFmt("http://hello.com/hello/there", "{}", .{url});
+    try expectFmt("http://hello.com/hello/there", "{f}", .{url});
 
     url = Url{ .scheme = scheme.Scheme.http, .host = try host.parse("172.16.254.1"), .port = 8080, .path = try path.parse("/hello/there") };
-    try expectFmt("http://172.16.254.1:8080/hello/there", "{}", .{url});
+    try expectFmt("http://172.16.254.1:8080/hello/there", "{f}", .{url});
 
     url = Url{ .scheme = scheme.Scheme.http, .host = try host.parse("[2002:db8::8a3f:362:7897]"), .port = 8080, .path = try path.parse("/") };
-    try expectFmt("http://[2002:db8::8a3f:362:7897]:8080/", "{}", .{url});
+    try expectFmt("http://[2002:db8::8a3f:362:7897]:8080/", "{f}", .{url});
 }
 
 test "parse 1" {
@@ -92,6 +104,24 @@ test "parse 2" {
     const url = try parse(url_to_parse);
     try expectEqualStrings(url.scheme.toString(), "http");
     try expectEqualStrings(url.host, "172.16.254.1");
+    try expect(url.port == null);
+    try expectEqualStrings(url.path, "/hello/there");
+}
+
+test "parse 3 ipv6 with port" {
+    const url_to_parse = "http://[2002:db8::8a3f:362:7897]:8080/";
+    const url = try parse(url_to_parse);
+    try expectEqualStrings(url.scheme.toString(), "http");
+    try expectEqualStrings(url.host, "[2002:db8::8a3f:362:7897]");
+    try expect(url.port.? == 8080);
+    try expectEqualStrings(url.path, "/");
+}
+
+test "parse 4 ipv6 without port" {
+    const url_to_parse = "http://[2002:db8::8a3f:362:7897]/hello/there";
+    const url = try parse(url_to_parse);
+    try expectEqualStrings(url.scheme.toString(), "http");
+    try expectEqualStrings(url.host, "[2002:db8::8a3f:362:7897]");
     try expect(url.port == null);
     try expectEqualStrings(url.path, "/hello/there");
 }
