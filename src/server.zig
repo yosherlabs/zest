@@ -1,7 +1,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
-const expectError = std.testing.expectError;
-const expectEqualStrings = std.testing.expectEqualStrings;
+const expect_error = std.testing.expectError;
+const expect_equal_strings = std.testing.expectEqualStrings;
 const log = std.log.scoped(.zest);
 const rl = @import("request_line.zig");
 const req = @import("request.zig");
@@ -116,7 +116,7 @@ pub fn start(comptime config: Config, comptime router: Router) !void {
         var stream_writer = connection.stream.writer(&stream_writer_buffer);
         const w = &stream_writer.interface;
 
-        const read_request_line_slice = readHttpLine(r) catch {
+        const read_request_line_slice = read_http_line(r) catch {
             try w.writeAll("HTTP/1.1 400\r\n\r\n");
             try w.flush();
             connection.stream.close();
@@ -168,7 +168,7 @@ pub fn start(comptime config: Config, comptime router: Router) !void {
         };
         var request_headers_map = h.Headers.init(request_headers_map_fba.allocator());
         read_request_headers: while (true) {
-            const read_request_header_slice = readHttpLine(r) catch {
+            const read_request_header_slice = read_http_line(r) catch {
                 try w.writeAll("HTTP/1.1 400\r\n\r\n");
                 try w.flush();
                 connection.stream.close();
@@ -236,7 +236,7 @@ pub fn start(comptime config: Config, comptime router: Router) !void {
             connection.stream.close();
             continue :accept_loop;
         };
-        readBodyExact(r, request_body_raw) catch {
+        read_body_exact(r, request_body_raw) catch {
             try w.writeAll("HTTP/1.1 400\r\n\r\n");
             try w.flush();
             connection.stream.close();
@@ -291,7 +291,7 @@ pub fn start(comptime config: Config, comptime router: Router) !void {
             continue :accept_loop;
         }
         // status line
-        try w.print("{s} {s}\r\n", .{ response.status_line.version.toString(), response.status_line.status.toString() });
+        try w.print("{s} {s}\r\n", .{ response.status_line.version.to_string(), response.status_line.status.to_string() });
         // headers
         try w.writeAll("Connection: close\r\n");
         try w.writeAll("Content-Type: application/json\r\n");
@@ -307,26 +307,26 @@ pub fn start(comptime config: Config, comptime router: Router) !void {
     }
 }
 
-fn readBodyExact(reader: *std.Io.Reader, request_body_raw: []u8) !void {
+fn read_body_exact(reader: *std.Io.Reader, request_body_raw: []u8) !void {
     try reader.readSliceAll(request_body_raw);
 }
 
-fn readHttpLine(reader: *std.Io.Reader) !?[]const u8 {
+fn read_http_line(reader: *std.Io.Reader) !?[]const u8 {
     const line = try reader.takeDelimiter('\r');
     if (line == null) return null;
     if (try reader.takeByte() != '\n') return error.InvalidLineEnding;
     return line;
 }
 
-test "readBodyExact reads full body" {
+test "read_body_exact reads full body" {
     var stream: std.Io.Reader = .fixed("abc");
     var read_buffer: [3]u8 = undefined;
-    try readBodyExact(&stream, &read_buffer);
-    try expectEqualStrings("abc", &read_buffer);
+    try read_body_exact(&stream, &read_buffer);
+    try expect_equal_strings("abc", &read_buffer);
 }
 
-test "readBodyExact fails on truncated body" {
+test "read_body_exact fails on truncated body" {
     var stream: std.Io.Reader = .fixed("ab");
     var read_buffer: [3]u8 = undefined;
-    try expectError(error.EndOfStream, readBodyExact(&stream, &read_buffer));
+    try expect_error(error.EndOfStream, read_body_exact(&stream, &read_buffer));
 }

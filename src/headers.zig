@@ -1,7 +1,7 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectError = std.testing.expectError;
-const expectEqualStrings = std.testing.expectEqualStrings;
+const expect_error = std.testing.expectError;
+const expect_equal_strings = std.testing.expectEqualStrings;
 
 pub const HeadersError = error{
     InvalidHeader,
@@ -30,8 +30,8 @@ pub const Headers = struct {
     }
 
     pub fn put(self: *Headers, name: []const u8, value: []const u8) HeadersError!void {
-        if (!validName(name)) return HeadersError.InvalidHeaderName;
-        if (!validValue(value)) return HeadersError.InvalidHeaderValue;
+        if (!valid_name(name)) return HeadersError.InvalidHeaderName;
+        if (!valid_value(value)) return HeadersError.InvalidHeaderValue;
 
         var iter = self.headers.iterator();
         while (iter.next()) |entry| {
@@ -56,14 +56,14 @@ pub const Headers = struct {
     }
 };
 
-fn validName(name: []const u8) bool {
+fn valid_name(name: []const u8) bool {
     for (name) |char| {
         if (!valid_header_name_characters[char]) return false;
     }
     return true;
 }
 
-fn validValue(value: []const u8) bool {
+fn valid_value(value: []const u8) bool {
     for (value) |char| {
         if (!valid_header_value_characters[char]) return false;
     }
@@ -115,7 +115,7 @@ test "valid header 1" {
 
     try headers.parse("Content-Length: 42");
     const value = headers.get("Content-Length") orelse unreachable;
-    try expectEqualStrings("42", value);
+    try expect_equal_strings("42", value);
 }
 
 test "invalid header" {
@@ -124,16 +124,16 @@ test "invalid header" {
     var headers = Headers.init(fba.allocator());
 
     var expected_error = HeadersError.InvalidHeaderName;
-    try expectError(expected_error, headers.parse("Con(tent-Length: 42"));
+    try expect_error(expected_error, headers.parse("Con(tent-Length: 42"));
 
     expected_error = HeadersError.InvalidHeaderValue;
-    try expectError(expected_error, headers.parse("Content-Length: 4\r2"));
+    try expect_error(expected_error, headers.parse("Content-Length: 4\r2"));
 
     expected_error = HeadersError.InvalidHeader;
-    try expectError(expected_error, headers.parse("Content-Length:42"));
+    try expect_error(expected_error, headers.parse("Content-Length:42"));
 
     expected_error = HeadersError.InvalidHeader;
-    try expectError(expected_error, headers.parse(""));
+    try expect_error(expected_error, headers.parse(""));
 }
 
 test "out of space error" {
@@ -149,7 +149,7 @@ test "out of space error" {
     try headers.put("f", "6");
 
     const expected_error = HeadersError.OutOfSpace;
-    try expectError(expected_error, headers.parse("g: 7"));
+    try expect_error(expected_error, headers.parse("g: 7"));
 }
 
 test "header names are case-insensitive" {
@@ -158,9 +158,9 @@ test "header names are case-insensitive" {
     var headers = Headers.init(fba.allocator());
 
     try headers.parse("Content-Length: 42");
-    try expectEqualStrings("42", headers.get("content-length") orelse unreachable);
-    try expectEqualStrings("42", headers.get("CONTENT-LENGTH") orelse unreachable);
+    try expect_equal_strings("42", headers.get("content-length") orelse unreachable);
+    try expect_equal_strings("42", headers.get("CONTENT-LENGTH") orelse unreachable);
 
     try headers.parse("content-length: 43");
-    try expectEqualStrings("43", headers.get("Content-Length") orelse unreachable);
+    try expect_equal_strings("43", headers.get("Content-Length") orelse unreachable);
 }

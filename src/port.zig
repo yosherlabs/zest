@@ -1,7 +1,7 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectEqualStrings = std.testing.expectEqualStrings;
-const expectError = std.testing.expectError;
+const expect_equal_strings = std.testing.expectEqualStrings;
+const expect_error = std.testing.expectError;
 
 pub const PortError = error{
     InvalidPort,
@@ -25,7 +25,7 @@ test "valid ports" {
 
 test "invalid ports" {
     const expected_error = PortError.InvalidPort;
-    try expectError(expected_error, parse("hello"));
-    try expectError(expected_error, parse("0"));
-    try expectError(expected_error, parse("65536"));
+    try expect_error(expected_error, parse("hello"));
+    try expect_error(expected_error, parse("0"));
+    try expect_error(expected_error, parse("65536"));
 }

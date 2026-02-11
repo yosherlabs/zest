@@ -1,6 +1,6 @@
 const std = @import("std");
 const assert = std.debug.assert;
-const expectEqualStrings = std.testing.expectEqualStrings;
+const expect_equal_strings = std.testing.expectEqualStrings;
 
 const h = @import("headers.zig");
 const sl = @import("status_line.zig");
@@ -15,12 +15,12 @@ pub const Response = struct {
     body_allocator: std.mem.Allocator,
     body_stringify_allocator: std.mem.Allocator,
 
-    pub fn stringifyBody(
+    pub fn stringify_body(
         self: *Response,
-        comptime BodyType: type,
-        body: BodyType,
+        comptime body_type: type,
+        body: body_type,
     ) b.StringifyBodyError!void {
-        self.body_raw = try b.stringify(self.body_stringify_allocator, BodyType, body);
+        self.body_raw = try b.stringify(self.body_stringify_allocator, body_type, body);
         assert(self.body_raw.len > 0);
     }
 };
@@ -48,6 +48,6 @@ test "stringify body uses stringify allocator" {
         .body_stringify_allocator = stringify_fba.allocator(),
     };
 
-    try response.stringifyBody(Payload, .{ .message = "hello" });
-    try expectEqualStrings("{\"message\":\"hello\"}", response.body_raw);
+    try response.stringify_body(Payload, .{ .message = "hello" });
+    try expect_equal_strings("{\"message\":\"hello\"}", response.body_raw);
 }

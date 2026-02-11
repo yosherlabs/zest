@@ -1,6 +1,6 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectError = std.testing.expectError;
+const expect_error = std.testing.expectError;
 
 pub const VersionError = error{
     UnsupportedVersion,
@@ -10,7 +10,7 @@ pub const VersionError = error{
 pub const Version = enum {
     http11,
 
-    pub fn toString(self: Version) []const u8 {
+    pub fn to_string(self: Version) []const u8 {
         return versions[@intFromEnum(self)];
     }
 };
@@ -34,13 +34,13 @@ test "lengths are equal" {
 
 test "invalid values return an error" {
     const expected_error = VersionError.UnsupportedVersion;
-    try expectError(expected_error, parse(""));
-    try expectError(expected_error, parse(" "));
-    try expectError(expected_error, parse("HELLO"));
+    try expect_error(expected_error, parse(""));
+    try expect_error(expected_error, parse(" "));
+    try expect_error(expected_error, parse("HELLO"));
 }
 
 test "version HTTP/1.1" {
     const version = Version.http11;
-    try expect(std.mem.eql(u8, version.toString(), "HTTP/1.1"));
+    try expect(std.mem.eql(u8, version.to_string(), "HTTP/1.1"));
     try expect((try parse("HTTP/1.1")) == Version.http11);
 }

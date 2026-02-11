@@ -1,7 +1,7 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectEqualStrings = std.testing.expectEqualStrings;
-const expectError = std.testing.expectError;
+const expect_equal_strings = std.testing.expectEqualStrings;
+const expect_error = std.testing.expectError;
 
 const method = @import("method.zig");
 const path = @import("path.zig");
@@ -44,18 +44,18 @@ test "valid request start path" {
     const request_line = "POST /hello HTTP/1.1";
     const result = try parse(request_line);
     try expect(result.method == method.Method.post);
-    try expectEqualStrings("/hello", result.path);
+    try expect_equal_strings("/hello", result.path);
     try expect(result.version == version.Version.http11);
 }
 
 test "wrong request method" {
     const request_line = "POS /hello HTTP/1.1";
     const expected_error = method.MethodError.UnsupportedMethod;
-    try expectError(expected_error, parse(request_line));
+    try expect_error(expected_error, parse(request_line));
 }
 
 test "wrong request version" {
     const request_line = "POST /hello HTTP/1.2";
     const expected_error = version.VersionError.UnsupportedVersion;
-    try expectError(expected_error, parse(request_line));
+    try expect_error(expected_error, parse(request_line));
 }

@@ -1,7 +1,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const expect = std.testing.expect;
-const expectEqualStrings = std.testing.expectEqualStrings;
+const expect_equal_strings = std.testing.expectEqualStrings;
 const b = @import("body.zig");
 const h = @import("headers.zig");
 const Request = @import("request.zig").Request;
@@ -32,7 +32,7 @@ fn scouter(_: Request, _: *Response) HandlerError!void {}
 
 test "init stores path and handler pointer" {
     const route = comptime try Route.init("/scouter", scouter);
-    try expectEqualStrings("/scouter", route.path);
+    try expect_equal_strings("/scouter", route.path);
 
     const expected_handler: Handler = scouter;
     try expect(@intFromPtr(expected_handler) == @intFromPtr(route.handler));

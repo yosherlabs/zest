@@ -1,7 +1,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const expect = std.testing.expect;
-const expectEqualStrings = std.testing.expectEqualStrings;
+const expect_equal_strings = std.testing.expectEqualStrings;
 const Route = @import("route.zig").Route;
 const HandlerError = @import("route.zig").HandlerError;
 const Request = @import("request.zig").Request;
@@ -43,7 +43,7 @@ test "find returns route for exact path" {
     const router = comptime Router.init(&routes);
 
     const found = router.find("/ping") orelse unreachable;
-    try expectEqualStrings("/ping", found.path);
+    try expect_equal_strings("/ping", found.path);
 }
 
 test "find returns null for unknown path" {

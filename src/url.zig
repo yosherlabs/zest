@@ -1,8 +1,8 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectEqualStrings = std.testing.expectEqualStrings;
-const expectFmt = std.testing.expectFmt;
-const expectError = std.testing.expectError;
+const expect_equal_strings = std.testing.expectEqualStrings;
+const expect_fmt = std.testing.expectFmt;
+const expect_error = std.testing.expectError;
 
 const scheme = @import("scheme.zig");
 const host = @import("host.zig");
@@ -20,7 +20,7 @@ pub const Url = struct {
     path: []const u8,
 
     pub fn format(self: Url, writer: *std.Io.Writer) std.Io.Writer.Error!void {
-        try writer.writeAll(self.scheme.toString());
+        try writer.writeAll(self.scheme.to_string());
         try writer.writeAll("://");
         try writer.writeAll(self.host);
         if (self.port) |port_exists| {
@@ -78,50 +78,50 @@ pub fn parse(url: []const u8) Error!Url {
 
 test "format" {
     var url = Url{ .scheme = scheme.Scheme.http, .host = try host.parse("hello.com"), .port = 8080, .path = try path.parse("/hello/there") };
-    try expectFmt("http://hello.com:8080/hello/there", "{f}", .{url});
+    try expect_fmt("http://hello.com:8080/hello/there", "{f}", .{url});
 
     url = Url{ .scheme = scheme.Scheme.http, .host = try host.parse("hello.com"), .port = null, .path = try path.parse("/hello/there") };
-    try expectFmt("http://hello.com/hello/there", "{f}", .{url});
+    try expect_fmt("http://hello.com/hello/there", "{f}", .{url});
 
     url = Url{ .scheme = scheme.Scheme.http, .host = try host.parse("172.16.254.1"), .port = 8080, .path = try path.parse("/hello/there") };
-    try expectFmt("http://172.16.254.1:8080/hello/there", "{f}", .{url});
+    try expect_fmt("http://172.16.254.1:8080/hello/there", "{f}", .{url});
 
     url = Url{ .scheme = scheme.Scheme.http, .host = try host.parse("[2002:db8::8a3f:362:7897]"), .port = 8080, .path = try path.parse("/") };
-    try expectFmt("http://[2002:db8::8a3f:362:7897]:8080/", "{f}", .{url});
+    try expect_fmt("http://[2002:db8::8a3f:362:7897]:8080/", "{f}", .{url});
 }
 
 test "parse 1" {
     const url_to_parse = "http://172.16.254.1:8080/hello/there";
     const url = try parse(url_to_parse);
-    try expectEqualStrings(url.scheme.toString(), "http");
-    try expectEqualStrings(url.host, "172.16.254.1");
+    try expect_equal_strings(url.scheme.to_string(), "http");
+    try expect_equal_strings(url.host, "172.16.254.1");
     try expect(url.port.? == 8080);
-    try expectEqualStrings(url.path, "/hello/there");
+    try expect_equal_strings(url.path, "/hello/there");
 }
 
 test "parse 2" {
     const url_to_parse = "http://172.16.254.1/hello/there";
     const url = try parse(url_to_parse);
-    try expectEqualStrings(url.scheme.toString(), "http");
-    try expectEqualStrings(url.host, "172.16.254.1");
+    try expect_equal_strings(url.scheme.to_string(), "http");
+    try expect_equal_strings(url.host, "172.16.254.1");
     try expect(url.port == null);
-    try expectEqualStrings(url.path, "/hello/there");
+    try expect_equal_strings(url.path, "/hello/there");
 }
 
 test "parse 3 ipv6 with port" {
     const url_to_parse = "http://[2002:db8::8a3f:362:7897]:8080/";
     const url = try parse(url_to_parse);
-    try expectEqualStrings(url.scheme.toString(), "http");
-    try expectEqualStrings(url.host, "[2002:db8::8a3f:362:7897]");
+    try expect_equal_strings(url.scheme.to_string(), "http");
+    try expect_equal_strings(url.host, "[2002:db8::8a3f:362:7897]");
     try expect(url.port.? == 8080);
-    try expectEqualStrings(url.path, "/");
+    try expect_equal_strings(url.path, "/");
 }
 
 test "parse 4 ipv6 without port" {
     const url_to_parse = "http://[2002:db8::8a3f:362:7897]/hello/there";
     const url = try parse(url_to_parse);
-    try expectEqualStrings(url.scheme.toString(), "http");
-    try expectEqualStrings(url.host, "[2002:db8::8a3f:362:7897]");
+    try expect_equal_strings(url.scheme.to_string(), "http");
+    try expect_equal_strings(url.host, "[2002:db8::8a3f:362:7897]");
     try expect(url.port == null);
-    try expectEqualStrings(url.path, "/hello/there");
+    try expect_equal_strings(url.path, "/hello/there");
 }

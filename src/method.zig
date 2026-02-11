@@ -1,6 +1,6 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectError = std.testing.expectError;
+const expect_error = std.testing.expectError;
 
 pub const MethodError = error{
     UnsupportedMethod,
@@ -10,7 +10,7 @@ pub const MethodError = error{
 pub const Method = enum {
     post,
 
-    pub fn toString(self: Method) []const u8 {
+    pub fn to_string(self: Method) []const u8 {
         return methods[@intFromEnum(self)];
     }
 };
@@ -34,14 +34,14 @@ test "lengths are equal" {
 
 test "invalid values return an error" {
     const expected_error = MethodError.UnsupportedMethod;
-    try expectError(expected_error, parse(""));
-    try expectError(expected_error, parse(" "));
-    try expectError(expected_error, parse("HELLO"));
+    try expect_error(expected_error, parse(""));
+    try expect_error(expected_error, parse(" "));
+    try expect_error(expected_error, parse("HELLO"));
 }
 
 test "method POST" {
     const method = Method.post;
-    try expect(std.mem.eql(u8, method.toString(), "POST"));
+    try expect(std.mem.eql(u8, method.to_string(), "POST"));
     const result = try parse("POST");
     try expect(result == Method.post);
 }

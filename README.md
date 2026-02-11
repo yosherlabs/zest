@@ -21,10 +21,10 @@ const ScouterReading = struct {
 };
 
 fn scouter(req: Request, res: *Response) HandlerError!void {
-    const request_body = try req.parseBody(Person);
+    const request_body = try req.parse_body(Person);
     const power_level: u64 = if (std.mem.eql(u8, "goku", request_body.name)) 9000 else 1;
     const response_body = ScouterReading{ .power_level = power_level };
-    try res.stringifyBody(ScouterReading, response_body);
+    try res.stringify_body(ScouterReading, response_body);
 }
 
 pub fn main() !void {

@@ -1,8 +1,8 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const expect = std.testing.expect;
-const expectError = std.testing.expectError;
-const expectEqualStrings = std.testing.expectEqualStrings;
+const expect_error = std.testing.expectError;
+const expect_equal_strings = std.testing.expectEqualStrings;
 
 const h = @import("headers.zig");
 const rl = @import("request_line.zig");
@@ -16,13 +16,13 @@ pub const Request = struct {
     body_raw: []const u8,
     body_allocator: std.mem.Allocator,
 
-    pub fn parseBody(self: Request, comptime BodyType: type) b.ParseBodyError!BodyType {
+    pub fn parse_body(self: Request, comptime body_type: type) b.ParseBodyError!body_type {
         assert(self.body_raw.len > 0);
-        return b.parse(self.body_allocator, BodyType, self.body_raw);
+        return b.parse(self.body_allocator, body_type, self.body_raw);
     }
 };
 
-test "parseBody parses a valid payload" {
+test "parse_body parses a valid payload" {
     const Payload = struct {
         name: []const u8,
         power_level: u64,
@@ -41,12 +41,12 @@ test "parseBody parses a valid payload" {
         .body_allocator = body_parse_fba.allocator(),
     };
 
-    const payload = try request.parseBody(Payload);
-    try expectEqualStrings("goku", payload.name);
+    const payload = try request.parse_body(Payload);
+    try expect_equal_strings("goku", payload.name);
     try expect(payload.power_level == 9000);
 }
 
-test "parseBody returns CannotParseBody on invalid json" {
+test "parse_body returns CannotParseBody on invalid json" {
     const Payload = struct {
         name: []const u8,
     };
@@ -64,5 +64,5 @@ test "parseBody returns CannotParseBody on invalid json" {
         .body_allocator = body_parse_fba.allocator(),
     };
 
-    try expectError(error.CannotParseBody, request.parseBody(Payload));
+    try expect_error(error.CannotParseBody, request.parse_body(Payload));
 }

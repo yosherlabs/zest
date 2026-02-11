@@ -1,6 +1,6 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectEqualStrings = std.testing.expectEqualStrings;
+const expect_equal_strings = std.testing.expectEqualStrings;
 
 pub const ParseBodyError = error{
     CannotParseBody,
@@ -39,8 +39,8 @@ test "testing 1" {
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     const body = "{\"greeting\": \"9999\", \"hello\": \"88\", \"you\": 9}";
     const result = try parse(fba.allocator(), Config, body);
-    try expectEqualStrings(result.greeting, "9999");
-    try expectEqualStrings(result.hello, "88");
+    try expect_equal_strings(result.greeting, "9999");
+    try expect_equal_strings(result.hello, "88");
     try expect(result.you == 9);
 }
 
@@ -50,5 +50,5 @@ test "testing 2" {
     var buffer: [1024]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
     const result = try stringify(fba.allocator(), Config, config);
-    try expectEqualStrings("{}", result);
+    try expect_equal_strings("{}", result);
 }

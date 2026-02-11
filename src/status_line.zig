@@ -1,7 +1,7 @@
 const std = @import("std");
 const expect = std.testing.expect;
-const expectEqualStrings = std.testing.expectEqualStrings;
-const expectError = std.testing.expectError;
+const expect_equal_strings = std.testing.expectEqualStrings;
+const expect_error = std.testing.expectError;
 
 const status = @import("status.zig");
 const version = @import("version.zig");
@@ -44,11 +44,11 @@ test "valid response status line" {
 test "wrong response version" {
     const status_line = "HTTP/1.2 200";
     const expected_error = version.VersionError.UnsupportedVersion;
-    try expectError(expected_error, parse(status_line));
+    try expect_error(expected_error, parse(status_line));
 }
 
 test "wrong response status" {
     const status_line = "HTTP/1.1 99";
     const expected_error = status.StatusError.InvalidStatusCode;
-    try expectError(expected_error, parse(status_line));
+    try expect_error(expected_error, parse(status_line));
 }
