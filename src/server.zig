@@ -1,4 +1,5 @@
 const std = @import("std");
+const assert = std.debug.assert;
 const expectError = std.testing.expectError;
 const expectEqualStrings = std.testing.expectEqualStrings;
 const log = std.log.scoped(.zest);
@@ -40,6 +41,18 @@ pub const Config = struct {
 };
 
 pub fn start(comptime config: Config, comptime router: Router) !void {
+    comptime {
+        assert(config.max_read_request_line_bytes > 0);
+        assert(config.max_read_request_headers_bytes > 0);
+        assert(config.max_request_headers_map_bytes > 0);
+        assert(config.max_response_headers_map_bytes > 0);
+        assert(config.max_read_request_body_bytes > 0);
+        assert(config.max_request_body_parse_bytes > 0);
+        assert(config.max_response_body_bytes > 0);
+        assert(config.max_response_body_stringify_bytes > 0);
+        assert(config.max_json_validate_bytes > 0);
+    }
+
     var server = try config.address.listen(.{ .reuse_address = true });
     defer server.deinit();
 
@@ -259,12 +272,6 @@ pub fn start(comptime config: Config, comptime router: Router) !void {
                 continue :accept_loop;
             },
             error.CannotStringifyBody, error.InvalidHeader, error.InvalidHeaderName, error.InvalidHeaderValue, error.OutOfSpace, error.InvalidStatusLine, error.InvalidStatusCode, error.UnsupportedVersion => {
-                try w.writeAll("HTTP/1.1 500\r\n\r\n");
-                try w.flush();
-                connection.stream.close();
-                continue :accept_loop;
-            },
-            else => {
                 try w.writeAll("HTTP/1.1 500\r\n\r\n");
                 try w.flush();
                 connection.stream.close();

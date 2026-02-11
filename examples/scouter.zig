@@ -3,6 +3,7 @@ const zest = @import("zest");
 const server = zest.server;
 const Request = zest.request.Request;
 const Response = zest.response.Response;
+const HandlerError = zest.route.HandlerError;
 const Route = zest.route.Route;
 const Router = zest.router.Router;
 
@@ -12,7 +13,7 @@ const Person = struct {
 
 const ScouterReading = struct { power_level: u64 };
 
-fn scouter(req: Request, res: *Response) anyerror!void {
+fn scouter(req: Request, res: *Response) HandlerError!void {
     const request_body = try req.parseBody(Person);
     const power_level: u64 = if (std.mem.eql(u8, "goku", request_body.name)) 9000 else 1;
     const response_body = ScouterReading{ .power_level = power_level };

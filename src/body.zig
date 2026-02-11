@@ -2,20 +2,31 @@ const std = @import("std");
 const expect = std.testing.expect;
 const expectEqualStrings = std.testing.expectEqualStrings;
 
-pub const BodyError = error{
+pub const ParseBodyError = error{
     CannotParseBody,
+};
+
+pub const StringifyBodyError = error{
     CannotStringifyBody,
 };
 
-pub fn parse(allocator: std.mem.Allocator, comptime T: type, body: []const u8) BodyError!T {
-    return std.json.parseFromSliceLeaky(T, allocator, body, .{}) catch BodyError.CannotParseBody;
+pub const BodyError = ParseBodyError || StringifyBodyError;
+
+pub fn parse(allocator: std.mem.Allocator, comptime T: type, body: []const u8) ParseBodyError!T {
+    return std.json.parseFromSliceLeaky(T, allocator, body, .{}) catch ParseBodyError.CannotParseBody;
 }
 
-pub fn stringify(allocator: std.mem.Allocator, comptime T: type, content: T) BodyError![]const u8 {
+pub fn stringify(
+    allocator: std.mem.Allocator,
+    comptime T: type,
+    content: T,
+) StringifyBodyError![]const u8 {
     var out: std.Io.Writer.Allocating = .init(allocator);
     errdefer out.deinit();
-    std.json.Stringify.value(content, .{}, &out.writer) catch return BodyError.CannotStringifyBody;
-    return out.toOwnedSlice() catch BodyError.CannotStringifyBody;
+    std.json.Stringify.value(content, .{}, &out.writer) catch {
+        return StringifyBodyError.CannotStringifyBody;
+    };
+    return out.toOwnedSlice() catch StringifyBodyError.CannotStringifyBody;
 }
 
 test "testing 1" {

@@ -1,4 +1,5 @@
 const std = @import("std");
+const assert = std.debug.assert;
 const expectEqualStrings = std.testing.expectEqualStrings;
 
 const h = @import("headers.zig");
@@ -14,8 +15,13 @@ pub const Response = struct {
     body_allocator: std.mem.Allocator,
     body_stringify_allocator: std.mem.Allocator,
 
-    pub fn stringifyBody(self: *Response, comptime BodyType: type, body: BodyType) !void {
+    pub fn stringifyBody(
+        self: *Response,
+        comptime BodyType: type,
+        body: BodyType,
+    ) b.StringifyBodyError!void {
         self.body_raw = try b.stringify(self.body_stringify_allocator, BodyType, body);
+        assert(self.body_raw.len > 0);
     }
 };
 
